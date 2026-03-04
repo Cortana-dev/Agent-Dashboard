@@ -1,0 +1,9 @@
+LLM Usage & Monitoring Guidelines
+
+1. Keep prompts scoped and intent-focused. Short, specific instructions help the model stay on topic and reduce wasted tokens.
+2. Monitor both daily and monthly budgets. Highlight usage above ~80% so teams can pause heavy flows or request rate-limit increases proactively.
+3. Reuse curated system prompts and guardrails. Consistent instructions improve reliability and make audits easier.
+4. Surface alerts or falls-backs (errors, slow responses) alongside usage data so operators can react before a full outage.
+5. Validate critical outputs with golden references or tool-based checks when accuracy is required.
+
+Refer back to this file whenever you add new agents or update policies so everyone understands the playbook.

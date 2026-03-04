@@ -1,0 +1,10 @@
+LLM Medium Practice Guide
+
+1. **Budget awareness:** Monitor monthly token usage and consider soft limits at 75% and hard alerts at 90% so the dashboard can warn users in time. Match budgets to cost tiers (e.g., gpt-4.1 use a higher threshold than gpt-3.5).
+2. **Prompt hygiene:** Keep system prompts short but precise. Reuse verified instructions through shared snippets instead of retyping them inside every request to avoid divergence.
+3. **Signal logic:** Capture the intent of each agent by labeling prompts clearly and noting whether they are exploratory vs. transactional. The UI should show these labels below the usage meters when possible for transparency.
+4. **Safety-first responses:** When a model returns uncertain or refusal content, log the context and mark the agent as needing review so the reviewer workflow can follow up.
+5. **Observable metrics:** Prioritize collecting both token counts (daily/monthly) and completion latencies so the dashboard can highlight slow agents for a performance review.
+6. **Data residency:** If an agent handles sensitive data, mark it accordingly so the dashboard can limit which metrics get surfaced (token counts only, no content). Here we treat those agents cautiously in the UI.
+
+These best practices will be referenced directly in the dashboard and should be used by both coder and reviewer to evaluate prompts, expansions, and telemetry updates.
