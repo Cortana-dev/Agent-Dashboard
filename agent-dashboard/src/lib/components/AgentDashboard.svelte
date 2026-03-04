@@ -72,18 +72,22 @@
 			LLM usage notes live in <a href={docLink} target="_blank" rel="noreferrer">{docLink}</a>.
 			Keep prompts scoped, recycle trusted system instructions, and monitor monthly usage so you can act before limits are hit.
 		</p>
+		<p>
+			Each card now tracks a neon timeline and health pulse so you can sense when an agent drifted into warnings or errors without leaving the mobile view.
+		</p>
 		<p class="guidance__meta">Key reminders: short prompts, 80% usage alerts, clear system instructions.</p>
 	</div>
 </section>
 
 <style>
 	.dashboard {
-		width: min(640px, 100%);
+		width: min(960px, 100%);
 		margin: 0 auto;
 		padding: 1rem 0 2rem;
 		display: flex;
 		flex-direction: column;
 		row-gap: 1rem;
+		color: #e0e7ff;
 	}
 
 	.dashboard__header {
@@ -95,58 +99,57 @@
 
 	.dashboard__header h1 {
 		margin: 0;
-		font-size: clamp(1.7rem, 4vw, 2.4rem);
+		font-size: clamp(1.7rem, 4vw, 2.7rem);
 	}
 
 	.eyebrow {
 		margin: 0;
 		text-transform: uppercase;
-		letter-spacing: 0.15em;
+		letter-spacing: 0.25em;
 		font-size: 0.7rem;
-		color: var(--muted-text, #8a95a1);
+		color: rgba(226, 232, 240, 0.65);
 	}
 
 	.last-updated {
 		margin: 0;
 		font-size: 0.85rem;
-		color: var(--muted-text, #8a95a1);
+		color: rgba(226, 232, 240, 0.6);
 	}
 
 	.refresh {
 		border: none;
-		background: var(--card-background, #ffffff);
-		color: var(--primary, #2563eb);
-		padding: 0.65rem 1.2rem;
+		background: linear-gradient(135deg, rgba(59, 130, 246, 0.8), rgba(14, 165, 233, 0.9));
+		color: #020617;
+		padding: 0.75rem 1.3rem;
 		border-radius: 999px;
 		font-weight: 600;
-		box-shadow: 0 4px 12px rgba(20, 23, 37, 0.12);
-		transition: transform 0.2s ease, background 0.2s ease;
+		box-shadow: 0 8px 20px rgba(14, 165, 233, 0.6);
+		transition: transform 0.2s ease;
 	}
 
 	.refresh:hover {
 		transform: translateY(-1px);
-		background: var(--primary-muted, #f0f5ff);
 	}
 
 	.llm-guidance {
 		padding: 1rem 1.2rem;
-		border-radius: 12px;
-		background: var(--guide-bg, #11182714);
-		border: 1px solid rgba(226, 232, 240, 0.8);
+		border-radius: 16px;
+		background: rgba(2, 6, 23, 0.75);
+		border: 1px solid rgba(59, 130, 246, 0.4);
 		font-size: 0.9rem;
 		line-height: 1.5;
-		color: var(--muted-text, #4b5563);
+		color: rgba(226, 232, 240, 0.8);
 	}
 
 	.llm-guidance a {
-		color: var(--primary, #2563eb);
+		color: #38bdf8;
 		text-decoration: underline;
 	}
 
 	.guidance__meta {
 		margin-top: 0.5rem;
 		font-size: 0.8rem;
-		color: var(--muted-text, #6b7280);
+		color: rgba(226, 232, 240, 0.6);
 	}
 
 	@media (max-width: 480px) {

@@ -34,6 +34,6 @@
 		margin: 2rem 0;
 		text-align: center;
 		font-size: 0.95rem;
-		color: var(--muted-text, #4b5563);
+		color: rgba(226, 232, 240, 0.7);
 	}
 </style>

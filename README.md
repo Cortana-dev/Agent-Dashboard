@@ -1,6 +1,6 @@
 # Agent Dashboard
 
-An internal operations console that keeps every autonomous agent in sight. The dashboard lives in `agent-dashboard/`, and it was built as a lightweight Svelte + Vite SPA to make agent activity consumable in seconds, especially on small screens.
+An internal operations console that keeps every autonomous agent in sight. Neon alert timelines and animated health pulses make it easy to absorb the last 24 hours of activity before drilling into tokens or prompts. The dashboard lives in `agent-dashboard/`, and it was built as a lightweight Svelte + Vite SPA to make agent activity consumable in seconds, especially on small screens.
 
 ## Purpose
 

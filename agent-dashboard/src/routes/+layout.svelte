@@ -16,8 +16,9 @@
 	:global(body) {
 		margin: 0;
 		font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
-		background: radial-gradient(circle at 20% -10%, #eef2ff 0%, #f8fafc 50%, #ffffff 100%);
-		color: #0f172a;
+		background: radial-gradient(circle at 10% 10%, rgba(59, 130, 246, 0.4), transparent 35%),
+			linear-gradient(180deg, #020617 0%, #030712 35%, #050b1a 70%, #020617 100%);
+		color: #e0e7ff;
 		min-height: 100vh;
 	}
 
@@ -26,6 +27,7 @@
 		flex-direction: column;
 		min-height: 100vh;
 		padding: 0 1rem;
+		background: radial-gradient(circle at 80% 0%, rgba(14, 165, 233, 0.2), transparent 45%);
 	}
 
 	main {

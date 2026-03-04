@@ -52,31 +52,32 @@
 <style>
 	.expandable-details {
 		padding: 0 1.25rem 1.25rem;
-		border-top: 1px solid rgba(15, 23, 42, 0.08);
-		background: linear-gradient(180deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.9));
+		border-top: 1px solid rgba(59, 130, 246, 0.25);
+		background: linear-gradient(180deg, rgba(2, 6, 23, 0.9), rgba(2, 6, 23, 0.95));
 		display: flex;
 		flex-direction: column;
-		gap: 0.75rem;
+		gap: 0.9rem;
 	}
 
 	.expandable-details__row {
 		display: flex;
 		flex-direction: column;
-		gap: 0.3rem;
+		gap: 0.35rem;
 	}
 
 	.expandable-details__label {
 		margin: 0;
-		font-size: 0.85rem;
+		font-size: 0.75rem;
 		text-transform: uppercase;
-		letter-spacing: 0.15em;
-		color: var(--muted-text, #6b7280);
+		letter-spacing: 0.25em;
+		color: rgba(148, 163, 184, 0.8);
 	}
 
 	.expandable-details__value {
 		margin: 0;
 		font-size: 1rem;
 		font-weight: 600;
+		color: #e0e7ff;
 	}
 
 	.expandable-details ul {
@@ -85,19 +86,20 @@
 		padding: 0;
 		display: flex;
 		flex-direction: column;
-		gap: 0.25rem;
+		gap: 0.35rem;
 	}
 
 	.prompts li {
 		padding-left: 0.75rem;
 		position: relative;
+		color: #cbd5f5;
 	}
 
 	.prompts li::before {
 		content: '–';
 		position: absolute;
 		left: 0;
-		color: var(--muted-text, #9ca3af);
+		color: rgba(59, 130, 246, 0.9);
 	}
 
 	.expandable-details__actions {

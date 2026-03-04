@@ -3,7 +3,9 @@
 	import StatusBadge from '$lib/components/StatusBadge.svelte';
 	import UsageMeter from '$lib/components/UsageMeter.svelte';
 	import ExpandableDetails from '$lib/components/ExpandableDetails.svelte';
-	import type { AgentSummary } from '$lib/types/agent';
+	import AgentHealthTimeline from '$lib/components/AgentHealthTimeline.svelte';
+	import HealthPulseIndicator from '$lib/components/HealthPulseIndicator.svelte';
+	import type { AgentSummary, TimelineEvent } from '$lib/types/agent';
 
 	export let agent: AgentSummary;
 	export let isExpanded = false;
@@ -12,6 +14,8 @@
 	const dispatch = createEventDispatcher();
 
 	const detailId = `agent-${agent.id}-details`;
+
+	let selectedEvent: TimelineEvent | null = agent.activityTimeline[agent.activityTimeline.length - 1] ?? null;
 
 	const handleKeyDown = (event: KeyboardEvent) => {
 		if (event.key === 'Enter' || event.key === ' ') {
@@ -23,6 +27,23 @@
 	const fireAction = (type: 'inspect' | 'check') => {
 		dispatch('action', { type, agentId: agent.id });
 	};
+
+	const handleTimelineSelect = (event: TimelineEvent) => {
+		selectedEvent = event;
+	};
+
+	const formatEventTime = (timestamp: string) => {
+		const parsed = Date.parse(timestamp);
+		if (Number.isNaN(parsed)) return 'unknown';
+		return new Date(parsed).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+	};
+
+	$: if (agent.activityTimeline.length) {
+		const newest = agent.activityTimeline[agent.activityTimeline.length - 1];
+		if (!selectedEvent || selectedEvent.id !== newest.id) {
+			selectedEvent = newest;
+		}
+	}
 </script>
 
 <article class={`agent-card ${agent.status} ${isExpanded ? 'expanded' : ''}`}>
@@ -50,6 +71,21 @@
 			<span>{agent.dailyTokens.toLocaleString()} tokens today</span>
 			<span>{agent.monthlyTokens.toLocaleString()} tokens month</span>
 		</div>
+		<div class="agent-card__pulse">
+			<AgentHealthTimeline
+				events={agent.activityTimeline}
+				activeId={selectedEvent?.id ?? null}
+				compact={!isExpanded}
+				on:select={(event) => handleTimelineSelect(event.detail.event)}
+			/>
+			<HealthPulseIndicator {...agent.healthPulse} />
+		</div>
+		{#if selectedEvent}
+			<p class="agent-card__event-summary">
+				<strong>{selectedEvent.label}</strong> · {selectedEvent.detail}
+				<span>{formatEventTime(selectedEvent.timestamp)}</span>
+			</p>
+		{/if}
 	</div>
 
 	{#if isExpanded}
@@ -68,13 +104,20 @@
 </article>
 
 <style>
+	:global(:root) {
+		--card-background: #070b1a;
+		--card-border: rgba(59, 130, 246, 0.7);
+		--muted-text: rgba(255, 255, 255, 0.65);
+		--primary: #38bdf8;
+	}
+
 	.agent-card {
-		border-radius: 1rem;
-		border: 1px solid rgba(15, 23, 42, 0.08);
-		background: var(--card-background, #ffffff);
-		box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+		border-radius: 1.25rem;
+		border: 1px solid rgba(59, 130, 246, 0.2);
+		background: linear-gradient(180deg, rgba(15, 23, 42, 0.8), rgba(2, 6, 23, 0.95));
+		box-shadow: 0 20px 35px rgba(2, 6, 23, 0.5);
 		padding: 0;
-		transition: transform 0.2s ease, box-shadow 0.2s ease;
+		transition: transform 0.2s ease, border-color 0.2s ease;
 		overflow: hidden;
 	}
 
@@ -87,9 +130,8 @@
 		outline: none;
 	}
 
-	.agent-card__focus:focus-visible,
-	.agent-card__focus:focus {
-		box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.35);
+	.agent-card__focus:focus-visible {
+		box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.45);
 	}
 
 	.agent-card__heading {
@@ -101,12 +143,14 @@
 
 	.agent-card__title {
 		margin: 0;
-		font-size: 1.2rem;
+		font-size: 1.25rem;
 		font-weight: 600;
+		color: #f8fafc;
 	}
 
 	.agent-card__chevron {
 		font-size: 1.4rem;
+		color: rgba(248, 250, 252, 0.6);
 	}
 
 	.agent-card__usage {
@@ -118,12 +162,41 @@
 	.agent-card__tokens {
 		display: flex;
 		justify-content: space-between;
-		font-size: 0.8rem;
-		color: var(--muted-text, #6b7280);
+		font-size: 0.75rem;
+		color: var(--muted-text);
+	}
+
+	.agent-card__pulse {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+		flex-wrap: wrap;
+	}
+
+	.agent-card__event-summary {
+		margin: 0;
+		font-size: 0.85rem;
+		color: var(--muted-text);
+		display: flex;
+		flex-direction: column;
+		gap: 0.15rem;
+	}
+
+	.agent-card__event-summary strong {
+		color: #e0f2fe;
+		font-weight: 600;
+	}
+
+	.agent-card__event-summary span {
+		font-size: 0.65rem;
+		text-transform: uppercase;
+		letter-spacing: 0.15em;
 	}
 
 	.agent-card.expanded {
 		transform: translateY(-2px);
+		border-color: rgba(59, 130, 246, 0.9);
 	}
 
 	.agent-card__actions {
@@ -138,29 +211,41 @@
 		border: none;
 		font-weight: 600;
 		cursor: pointer;
-		background: var(--primary, #2563eb);
-		color: #fff;
+		background: #38bdf8;
+		color: #020617;
 	}
 
 	.agent-card__actions button.ghost {
 		background: transparent;
-		border: 1px solid rgba(37, 99, 235, 0.4);
-		color: var(--primary, #2563eb);
+		border: 1px solid rgba(59, 130, 246, 0.6);
+		color: #e0e7ff;
 	}
 
 	.agent-card.online {
-		border-color: rgba(34, 197, 94, 0.2);
+		border-color: rgba(52, 211, 153, 0.5);
 	}
 
 	.agent-card.error {
-		border-color: rgba(248, 113, 113, 0.4);
+		border-color: rgba(248, 113, 113, 0.5);
 	}
 
 	.agent-card.paused {
-		border-color: rgba(251, 191, 36, 0.4);
+		border-color: rgba(251, 191, 36, 0.5);
 	}
 
 	.agent-card.idle {
-		border-color: rgba(59, 130, 246, 0.2);
+		border-color: rgba(59, 130, 246, 0.5);
+	}
+
+	@media (max-width: 640px) {
+		.agent-card__pulse {
+			flex-direction: column;
+			align-items: flex-start;
+		}
+
+		.agent-card__event-summary {
+			font-size: 0.75rem;
+		}
 	}
 </style>
+
