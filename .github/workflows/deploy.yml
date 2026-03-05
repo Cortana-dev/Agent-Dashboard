@@ -1,34 +1,34 @@
 name: Deploy agent dashboard
 
 on:
-push:
-branches: [main]
-workflow_dispatch:
+  push:
+    branches: [main]
+  workflow_dispatch:
 
 permissions:
-contents: read
-pages: write
-id-token: write
+  contents: read
+  pages: write
+  id-token: write
 
 jobs:
-deploy:
-runs-on: ubuntu-latest
-steps:
-- uses: actions/checkout@v4
-with:
-fetch-depth: 0
-- uses: actions/setup-node@v4
-with:
-node-version: '22'
-- name: Install dependencies
-run: npm install
-working-directory: agent-dashboard
-- name: Build agent dashboard
-run: npm run build
-working-directory: agent-dashboard
-env:
-BASE_PATH: /Agent-Dashboard
-- name: Deploy to GitHub Pages
-uses: actions/deploy-pages@v4
-with:
-folder: agent-dashboard/build
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install dependencies
+        run: npm install
+        working-directory: agent-dashboard
+      - name: Build agent dashboard
+        run: npm run build
+        working-directory: agent-dashboard
+        env:
+          BASE_PATH: /Agent-Dashboard
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v4
+        with:
+          folder: agent-dashboard/build
