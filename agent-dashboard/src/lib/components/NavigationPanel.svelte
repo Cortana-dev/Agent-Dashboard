@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { createEventDispatcher } from 'svelte';
-import type { NavigationItem } from '$lib/types/navigation';
+	import type { NavigationItem } from '$lib/types/navigation';
 
 	export let items: NavigationItem[] = [];
 	export let ariaLabel = 'Primary navigation';
@@ -36,6 +36,7 @@ import type { NavigationItem } from '$lib/types/navigation';
 		display: flex;
 		flex-direction: column;
 		gap: 1rem;
+		color: var(--sidebar-text);
 	}
 
 	.navigation-panel__header {
@@ -49,12 +50,13 @@ import type { NavigationItem } from '$lib/types/navigation';
 		text-transform: uppercase;
 		font-size: 0.65rem;
 		letter-spacing: 0.2em;
-		color: rgba(226, 232, 240, 0.7);
+		color: var(--muted-text);
 	}
 
 	.navigation-panel__header h2 {
 		margin: 0;
 		font-size: 1.5rem;
+		color: var(--text-color);
 	}
 
 	.navigation-panel__list {
@@ -64,8 +66,8 @@ import type { NavigationItem } from '$lib/types/navigation';
 	}
 
 	.navigation-panel__link {
-		border: none;
-		background: rgba(148, 163, 184, 0.08);
+		border: 1px solid var(--navigation-link-border);
+		background: var(--navigation-link-bg);
 		color: inherit;
 		border-radius: 14px;
 		padding: 0.75rem 1rem;
@@ -78,7 +80,7 @@ import type { NavigationItem } from '$lib/types/navigation';
 	}
 
 	.navigation-panel__link:hover {
-		background: rgba(148, 163, 184, 0.2);
+		background: var(--navigation-link-hover);
 		transform: translateX(2px);
 	}
 
@@ -87,10 +89,10 @@ import type { NavigationItem } from '$lib/types/navigation';
 		width: 32px;
 		height: 32px;
 		border-radius: 10px;
-		border: 1px solid rgba(148, 163, 184, 0.35);
+		border: 1px solid var(--navigation-link-border);
 		align-items: center;
 		justify-content: center;
-		background: rgba(148, 163, 184, 0.25);
+		background: var(--navigation-link-bg);
 	}
 
 	.navigation-panel__label {
@@ -99,7 +101,7 @@ import type { NavigationItem } from '$lib/types/navigation';
 	}
 
 	.navigation-panel__link small {
-		color: rgba(226, 232, 240, 0.8);
+		color: var(--muted-text);
 		font-size: 0.8rem;
 	}
 </style>

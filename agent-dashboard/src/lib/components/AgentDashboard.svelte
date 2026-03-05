@@ -184,6 +184,7 @@
 		background: var(--canvas, #f6f7fb);
 		display: flex;
 		justify-content: center;
+		color: var(--text-color);
 	}
 
 	.dashboard__box {
@@ -221,8 +222,8 @@
 		height: 100vh;
 		width: min(280px, 80vw);
 		max-width: 320px;
-		background: #0f172a;
-		color: #e2e8f0;
+		background: var(--sidebar-bg);
+		color: var(--sidebar-text);
 		padding: 1.25rem;
 		display: flex;
 		flex-direction: column;
@@ -230,8 +231,8 @@
 		transform: translateX(-110%);
 		transition: transform 0.3s ease;
 		z-index: 20;
-		box-shadow: 20px 0 60px rgba(15, 23, 42, 0.45);
-		border-right: 1px solid rgba(148, 163, 184, 0.25);
+		box-shadow: var(--sidebar-shadow);
+		border-right: 1px solid var(--sidebar-border);
 	}
 
 	.sidebar.open {
@@ -241,7 +242,7 @@
 	.sidebar__note {
 		margin-top: auto;
 		font-size: 0.75rem;
-		color: rgba(226, 232, 240, 0.75);
+		color: var(--muted-text);
 		line-height: 1.4;
 	}
 
@@ -251,9 +252,10 @@
 		align-items: center;
 		gap: 1rem;
 		padding: 1rem 1.25rem;
-		background: #ffffff;
+		background: var(--surface-bg);
 		border-radius: 18px;
-		box-shadow: 0 15px 35px rgba(15, 23, 42, 0.08);
+		box-shadow: var(--surface-shadow);
+		border: 1px solid var(--surface-border);
 	}
 
 	.dashboard__header-left {
@@ -271,8 +273,8 @@
 		width: 48px;
 		height: 48px;
 		border-radius: 14px;
-		border: 1px solid rgba(15, 23, 42, 0.1);
-		background: #ffffff;
+		border: 1px solid var(--border-color);
+		background: var(--surface-bg);
 		display: flex;
 		flex-direction: column;
 		justify-content: center;
@@ -288,7 +290,7 @@
 		width: 22px;
 		height: 2px;
 		border-radius: 999px;
-		background: #111827;
+		background: var(--text-color);
 	}
 
 	.dashboard__header-actions {
@@ -364,7 +366,7 @@
 		padding: 1rem 1.2rem;
 		border-radius: 12px;
 		background: var(--guide-bg, #11182714);
-		border: 1px solid rgba(226, 232, 240, 0.8);
+		border: 1px solid var(--surface-border);
 		font-size: 0.9rem;
 		line-height: 1.5;
 		color: var(--muted-text, #4b5563);
@@ -403,7 +405,7 @@
 		.dashboard__header {
 			padding: 0.8rem 1rem;
 		}
-	
+
 		.hamburger {
 			width: 42px;
 			height: 42px;
