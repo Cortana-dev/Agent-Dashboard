@@ -28,6 +28,10 @@ jobs:
         working-directory: agent-dashboard
         env:
           BASE_PATH: /Agent-Dashboard
+      - name: Prepare fallback index
+        run: |
+          cp agent-dashboard/build/200.html agent-dashboard/build/index.html
+          ls -l agent-dashboard/build
       - name: Upload build artifact for GitHub Pages
         uses: actions/upload-pages-artifact@v4
         with:
