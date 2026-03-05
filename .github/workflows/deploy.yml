@@ -29,7 +29,7 @@ jobs:
         env:
           BASE_PATH: /Agent-Dashboard
       - name: Upload build artifact for GitHub Pages
-        uses: actions/upload-pages-artifact@v1
+        uses: actions/upload-pages-artifact@v4
         with:
           path: agent-dashboard/build
       - name: Deploy to GitHub Pages
