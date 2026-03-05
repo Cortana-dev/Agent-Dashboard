@@ -28,7 +28,11 @@ jobs:
         working-directory: agent-dashboard
         env:
           BASE_PATH: /Agent-Dashboard
+      - name: Upload build artifact for GitHub Pages
+        uses: actions/upload-pages-artifact@v1
+        with:
+          path: agent-dashboard/build
       - name: Deploy to GitHub Pages
         uses: actions/deploy-pages@v4
         with:
-          folder: agent-dashboard/build
+          artifact_name: github-pages
