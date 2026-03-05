@@ -1,5 +1,12 @@
 export type AgentStatus = 'online' | 'idle' | 'paused' | 'error';
 
+export type AgentActionType = 'inspect' | 'check' | 'restart' | 'stop';
+
+export interface AgentActionEventDetail {
+	agentId: string;
+	type: AgentActionType;
+}
+
 export interface AgentSummary {
 	id: string;
 	name: string;

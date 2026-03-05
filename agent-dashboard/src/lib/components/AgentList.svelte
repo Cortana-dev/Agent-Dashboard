@@ -1,12 +1,21 @@
 <script lang="ts">
 	import AgentCard from '$lib/components/AgentCard.svelte';
 	import SkeletonAgentCard from '$lib/components/SkeletonAgentCard.svelte';
-	import type { AgentSummary } from '$lib/types/agent';
+	import type {
+		AgentSummary,
+		AgentActionEventDetail
+	} from '$lib/types/agent';
 
 	export let agents: AgentSummary[] = [];
 	export let expandedId: string | null = null;
 	export let onToggle: (id: string) => void = () => {};
+	export let onAction: (event: CustomEvent<AgentActionEventDetail>) => void = () => {};
 	export let loading = false;
+
+	const handleAction = (event: CustomEvent<AgentActionEventDetail>) => {
+		event.stopPropagation();
+		onAction(event);
+	};
 </script>
 
 <div class="agent-list">
@@ -18,7 +27,12 @@
 		<p class="empty-state">No agents connected yet.</p>
 	{:else}
 		{#each agents as agent (agent.id)}
-			<AgentCard agent={agent} isExpanded={agent.id === expandedId} onToggle={() => onToggle(agent.id)} />
+			<AgentCard
+				agent={agent}
+				isExpanded={agent.id === expandedId}
+				onToggle={() => onToggle(agent.id)}
+				on:action={handleAction}
+			/>
 		{/each}
 	{/if}
 </div>

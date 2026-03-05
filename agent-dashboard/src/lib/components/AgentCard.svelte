@@ -3,7 +3,7 @@
 	import StatusBadge from '$lib/components/StatusBadge.svelte';
 	import UsageMeter from '$lib/components/UsageMeter.svelte';
 	import ExpandableDetails from '$lib/components/ExpandableDetails.svelte';
-	import type { AgentSummary } from '$lib/types/agent';
+	import type { AgentSummary, AgentActionType } from '$lib/types/agent';
 
 	export let agent: AgentSummary;
 	export let isExpanded = false;
@@ -21,7 +21,7 @@
 		}
 	};
 
-	const fireAction = (type: 'inspect' | 'check') => {
+	const fireAction = (type: AgentActionType) => {
 		dispatch('action', { type, agentId: agent.id });
 	};
 </script>
@@ -62,7 +62,9 @@
 		>
 			<div slot="actions" class="agent-card__actions">
 				<button type="button" on:click|stopPropagation={() => fireAction('inspect')}>Inspect logs</button>
-				<button type="button" class="ghost" on:click|stopPropagation={() => fireAction('check')}>Run check</button>
+				<button type="button" class="ghost" on:click|stopPropagation={() => fireAction('restart')}>Restart agent</button>
+				<button type="button" class="ghost secondary" on:click|stopPropagation={() => fireAction('check')}>Run check</button>
+				<button type="button" class="danger" on:click|stopPropagation={() => fireAction('stop')}>Stop agent</button>
 			</div>
 		</ExpandableDetails>
 	{/if}
@@ -141,12 +143,34 @@
 		cursor: pointer;
 		background: var(--primary, #2563eb);
 		color: #fff;
+		transition: transform 0.2s ease, box-shadow 0.2s ease;
+	}
+
+	.agent-card__actions button:hover {
+		transform: translateY(-1px);
+		box-shadow: 0 6px 12px rgba(37, 99, 235, 0.3);
 	}
 
 	.agent-card__actions button.ghost {
 		background: transparent;
 		border: 1px solid rgba(37, 99, 235, 0.4);
 		color: var(--primary, #2563eb);
+		box-shadow: none;
+	}
+
+	.agent-card__actions button.ghost.secondary {
+		background: rgba(37, 99, 235, 0.12);
+		color: #0f172a;
+	}
+
+	.agent-card__actions button.danger {
+		background: #ef4444;
+		color: #fff;
+		box-shadow: 0 8px 20px rgba(239, 68, 68, 0.4);
+	}
+
+	.agent-card__actions button.danger:hover {
+		background: #dc2626;
 	}
 
 	.agent-card.online {
