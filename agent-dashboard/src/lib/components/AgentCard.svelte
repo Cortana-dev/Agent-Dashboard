@@ -14,7 +14,8 @@
 	const detailId = `agent-${agent.id}-details`;
 
 	const handleKeyDown = (event: KeyboardEvent) => {
-		if (event.key === 'Enter' || event.key === ' ') {
+		const key = event.key;
+		if (key === 'Enter' || key === ' ' || key === 'Spacebar' || key === 'Space') {
 			event.preventDefault();
 			onToggle();
 		}

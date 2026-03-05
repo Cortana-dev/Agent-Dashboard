@@ -44,6 +44,7 @@
 			class="refresh"
 			aria-live="polite"
 			aria-busy={isRefreshing}
+			disabled={isRefreshing}
 			on:click={handleRefresh}
 		>
 			{#if isRefreshing}
@@ -126,6 +127,13 @@
 	.refresh:hover {
 		transform: translateY(-1px);
 		background: var(--primary-muted, #f0f5ff);
+	}
+
+	.refresh:disabled {
+		opacity: 0.6;
+		cursor: not-allowed;
+		box-shadow: none;
+		transform: none;
 	}
 
 	.llm-guidance {
