@@ -2,7 +2,7 @@ name: Deploy agent dashboard
 
 on:
   push:
-    branches: [main]
+    branches: [V1.2]
   workflow_dispatch:
 
 permissions:
