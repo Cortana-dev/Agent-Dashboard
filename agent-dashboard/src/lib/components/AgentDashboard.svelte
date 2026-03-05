@@ -4,7 +4,6 @@
 	import ChatSheet from '$lib/components/ChatSheet.svelte';
 	import ErrorBanner from '$lib/components/ErrorBanner.svelte';
 	import NavigationPanel from '$lib/components/NavigationPanel.svelte';
-	import TopNavbar from '$lib/components/TopNavbar.svelte';
 	import { theme, toggleTheme } from '$lib/stores/theme';
 	import type { AgentSummary, AgentActionEventDetail, AgentActionType } from '$lib/types/agent';
 	import type { NavigationItem } from '$lib/types/navigation';
@@ -32,8 +31,32 @@
 		{ id: 'chat', label: 'Chat mode', description: 'WhatsApp-style panel' },
 		{ id: 'settings', label: 'Settings', description: 'Policy and billing' }
 	];
-	const navLinkItems = navItems.filter((item) => item.id !== 'chat');
-	const headerNavItems = navLinkItems;
+
+	const statusPalette: Record<AgentSummary['status'], string> = {
+		online: '#22c55e',
+		idle: '#94a3b8',
+		paused: '#fbbf24',
+		error: '#f87171'
+	};
+
+	const formatInitials = (name: string) =>
+		name
+			.split(' ')
+			.map((segment) => segment[0])
+			.join('')
+			.slice(0, 2)
+			.toUpperCase();
+
+	const formatTime = (value: string) => {
+		const parsed = Date.parse(value);
+		if (!Number.isNaN(parsed)) {
+			return new Date(parsed).toLocaleTimeString('en-GB', {
+				hour: '2-digit',
+				minute: '2-digit'
+			});
+		}
+		return '—';
+	};
 
 	const unsubscribeTheme = theme.subscribe((value) => {
 		currentTheme = value;
@@ -160,7 +183,7 @@
 	></div>
 
 	<aside class={`sidebar ${sidebarOpen ? 'open' : ''}`}>
-		<NavigationPanel items={navLinkItems} activeId={activeNavId} on:select={handleNavSelection}>
+		<NavigationPanel items={navItems} activeId={activeNavId} on:select={handleNavSelection}>
 			<div slot="header-actions" class="sidebar__header-actions">
 				<button
 					type="button"
@@ -207,7 +230,7 @@
 	</aside>
 
 
-	<div class="dashboard__box">
+	<div class={`dashboard__box ${isChatMode ? 'chat-active' : ''}`}>
 		<header class="dashboard__header console-card">
 			<div class="dashboard__header-left">
 				<button
@@ -221,9 +244,13 @@
 					<span></span>
 					<span></span>
 				</button>
+				<div class="sidebar__hint" aria-hidden="true">
+					<span class="sidebar__hint-pulse"></span>
+					<span>Explore the sidebar</span>
+				</div>
 				<div class="dashboard__branding">
 					<p class="eyebrow">Agent console</p>
-					<h1>Agents</h1>
+					<h1>AGENT DASHBOARD</h1>
 				</div>
 				<div class="dashboard__mode-indicator">
 					<strong>Active mode</strong>
@@ -231,9 +258,7 @@
 				</div>
 			</div>
 			<div class="dashboard__header-right">
-				<TopNavbar items={headerNavItems} activeId={activeNavId} disabled={isChatMode} on:select={handleNavSelection} />
 				<div class="dashboard__header-controls">
-					
 					<button type="button" class="theme-pill" on:click={toggleTheme}>
 						{currentTheme === 'dark' ? '☀️ Light' : '🌙 Dark'}
 					</button>
@@ -241,7 +266,7 @@
 			</div>
 		</header>
 
-		<main class="dashboard__content">
+		<main class={`dashboard__content ${isChatMode ? 'chat-mode-active' : ''}`}>
 			<div class="dashboard__status-row">
 				<p>Last updated {formattedUpdated}</p>
 				<span class="status-chip">Mode: {activeNavItem.label}</span>
@@ -277,6 +302,35 @@
 				<section class="overview-panel">
 					<h2>Settings & policies</h2>
 					<p>Placeholder for governance, billing, and plan controls. You can place toggles here later.</p>
+				</section>
+			{:else if activeNavId === 'chat'}
+				<section class="chat-mode-panel">
+					<div class="chat-mode-panel__list">
+						{#if agents.length === 0}
+							<p class="chat-mode-panel__empty">No agents available yet.</p>
+						{:else}
+							{#each agents as agent (agent.id)}
+								<button
+									type="button"
+									class="chat-mode-panel__entry"
+									on:click={() => selectChatContact(agent.id)}
+								>
+									<span class="chat-mode-panel__avatar">{formatInitials(agent.name)}</span>
+									<div class="chat-mode-panel__content">
+										<div class="chat-mode-panel__top">
+											<strong>{agent.name}</strong>
+											<span>{formatTime(agent.lastActive)}</span>
+										</div>
+										<p>{agent.recentAlerts[0] ?? agent.topPrompts[0] ?? 'Awaiting activity…'}</p>
+									</div>
+									<span
+										class="chat-mode-panel__status"
+										style={`background:${statusPalette[agent.status]};`}
+										></span>
+								</button>
+							{/each}
+						{/if}
+					</div>
 				</section>
 			{:else}
 				<AgentList
@@ -316,6 +370,11 @@
 		display: flex;
 		flex-direction: column;
 		gap: 1rem;
+		transition: transform 0.35s ease, opacity 0.35s ease;
+	}
+
+	.dashboard__box.chat-active {
+		transform: translateY(-6px);
 	}
 
 	.sidebar-overlay {
@@ -369,6 +428,7 @@
 		color: var(--muted-text);
 		line-height: 1.4;
 	}
+
 	.sidebar__modes {
 		display: flex;
 		flex-direction: column;
@@ -377,6 +437,7 @@
 		border-top: 1px solid var(--navigation-link-border);
 		border-bottom: 1px solid var(--navigation-link-border);
 	}
+
 	.sidebar__modes-label {
 		margin: 0;
 		font-size: 0.65rem;
@@ -384,11 +445,13 @@
 		letter-spacing: 0.2em;
 		color: var(--muted-text);
 	}
+
 	.sidebar__modes-actions {
 		display: flex;
 		gap: 0.4rem;
 		flex-wrap: wrap;
 	}
+
 	.sidebar__mode-button {
 		border: 1px solid var(--navigation-link-border);
 		border-radius: 999px;
@@ -400,17 +463,18 @@
 		cursor: pointer;
 		transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
 	}
+
 	.sidebar__mode-button:hover,
 	.sidebar__mode-button:focus-visible {
 		transform: translateY(-1px);
 		border-color: var(--primary);
 	}
+
 	.sidebar__mode-button.active {
 		background: var(--primary);
 		color: #fff;
 		border-color: transparent;
 	}
-
 
 	.sidebar__header-actions {
 		display: flex;
@@ -432,6 +496,62 @@
 
 	.sidebar__close-mini {
 		padding: 0.35rem 0.65rem;
+	}
+
+	.hamburger {
+		background: transparent;
+		border: none;
+		display: flex;
+		flex-direction: column;
+		gap: 0.3rem;
+		padding: 0;
+		cursor: pointer;
+	}
+
+	.hamburger span {
+		display: block;
+		width: 1.6rem;
+		height: 0.28rem;
+		border-radius: 999px;
+		background: var(--text-color);
+		transition: background 0.2s ease;
+	}
+
+	.hamburger:focus-visible {
+		outline: 2px solid var(--primary);
+		outline-offset: 2px;
+	}
+
+	.sidebar__hint {
+		display: flex;
+		align-items: center;
+		gap: 0.35rem;
+		font-size: 0.75rem;
+		color: var(--muted-text);
+	}
+
+	.sidebar__hint-pulse {
+		width: 0.55rem;
+		height: 0.55rem;
+		border-radius: 999px;
+		background: var(--primary);
+		box-shadow: 0 0 15px rgba(96, 165, 250, 0.8);
+		animation: sidebarPulse 1.8s infinite;
+	}
+
+	@keyframes sidebarPulse {
+		0% {
+			transform: scale(1);
+			opacity: 0.9;
+		}
+		70% {
+			transform: scale(1.5);
+			opacity: 0;
+		}
+		100% {
+			transform: scale(1);
+			opacity: 0;
+		}
 	}
 
 	.dashboard__header {
@@ -504,6 +624,11 @@
 		display: flex;
 		flex-direction: column;
 		gap: 1rem;
+		transition: transform 0.35s ease, opacity 0.35s ease;
+	}
+
+	.dashboard__content.chat-mode-active {
+		transform: scale(1.01);
 	}
 
 	.dashboard__status-row {
@@ -564,6 +689,90 @@
 		font-size: 0.8rem;
 	}
 
+	.chat-mode-panel {
+		padding: 1rem;
+		border-radius: 20px;
+		background: var(--surface-bg);
+		border: 1px solid var(--surface-border);
+		box-shadow: var(--surface-shadow);
+	}
+
+	.chat-mode-panel__list {
+		display: flex;
+		flex-direction: column;
+		gap: 0.6rem;
+		max-height: 65vh;
+		overflow-y: auto;
+	}
+
+	.chat-mode-panel__entry {
+		width: 100%;
+		display: grid;
+		grid-template-columns: auto 1fr auto;
+		align-items: center;
+		gap: 0.75rem;
+		padding: 0.65rem 0.5rem;
+		border-radius: 16px;
+		background: var(--card-background);
+		border: 1px solid var(--card-border, rgba(148, 163, 184, 0.25));
+		cursor: pointer;
+		transition: transform 0.2s ease, border-color 0.2s ease;
+	}
+
+	.chat-mode-panel__entry:hover {
+		transform: translateX(3px);
+		border-color: var(--primary);
+	}
+
+	.chat-mode-panel__avatar {
+		width: 42px;
+		height: 42px;
+		border-radius: 12px;
+		background: var(--chat-avatar-bg);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-weight: 700;
+		letter-spacing: 0.08em;
+	}
+
+	.chat-mode-panel__content {
+		display: flex;
+		flex-direction: column;
+		gap: 0.15rem;
+	}
+
+	.chat-mode-panel__top {
+		display: flex;
+		justify-content: space-between;
+		font-size: 0.85rem;
+		color: var(--text-color);
+	}
+
+	.chat-mode-panel__top span {
+		font-size: 0.7rem;
+		color: var(--muted-text);
+	}
+
+	.chat-mode-panel__content p {
+		margin: 0;
+		font-size: 0.75rem;
+		color: var(--muted-text);
+	}
+
+	.chat-mode-panel__status {
+		width: 12px;
+		height: 12px;
+		border-radius: 50%;
+		border: 2px solid var(--border-color);
+	}
+
+	.chat-mode-panel__empty {
+		margin: 0;
+		text-align: center;
+		color: var(--muted-text);
+	}
+
 	@media (min-width: 900px) {
 		.dashboard__header {
 			flex-direction: row;
@@ -585,6 +794,10 @@
 	@media (max-width: 640px) {
 		.overview-panel__cards {
 			flex-direction: column;
+		}
+
+		.chat-mode-panel {
+			padding: 0.8rem;
 		}
 	}
 </style>

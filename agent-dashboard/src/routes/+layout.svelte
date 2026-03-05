@@ -14,14 +14,7 @@
 </svelte:head>
 
 <div class="page-shell">
-	<header class="page-shell__header">
-		<div>
-			<p class="eyebrow">Agent dashboard</p>
-			<h1>Agent console</h1>
-		</div>
-	</header>
-
-	<main>
+	<main class="page-shell__main">
 		<slot />
 	</main>
 </div>
@@ -111,21 +104,12 @@
 		margin: 0 auto;
 	}
 
-	.page-shell__header {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		gap: 1.25rem;
-		padding: 1.5rem 0 0rem;
+	.page-shell__main {
+		flex: 1;
+		padding: 0;
 	}
 
-	.page-shell__header h1 {
-		margin: 0;
-		font-size: clamp(1.6rem, 3vw, 2.2rem);
-	}
-
-	.page-shell__header .eyebrow,
-	.eyebrow {
+	:global(.eyebrow) {
 		margin: 0;
 		text-transform: uppercase;
 		letter-spacing: 0.15em;
@@ -133,20 +117,9 @@
 		color: var(--muted-text);
 	}
 
-	main {
-		flex: 1;
-		padding: 0;
-	}
-
 	@media (max-width: 768px) {
 		.page-shell {
 			padding: 0 1rem 2rem;
 		}
-
-		.page-shell__header {
-			flex-direction: column;
-			align-items: flex-start;
-		}
-
 	}
 </style>
