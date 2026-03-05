@@ -1,8 +1,11 @@
 <script lang="ts">
+	import { onDestroy } from 'svelte';
 	import AgentList from '$lib/components/AgentList.svelte';
-	import ChatModePanel from '$lib/components/ChatModePanel.svelte';
+	import ChatSheet from '$lib/components/ChatSheet.svelte';
 	import ErrorBanner from '$lib/components/ErrorBanner.svelte';
 	import NavigationPanel from '$lib/components/NavigationPanel.svelte';
+	import TopNavbar from '$lib/components/TopNavbar.svelte';
+	import { theme, toggleTheme } from '$lib/stores/theme';
 	import type { AgentSummary, AgentActionEventDetail, AgentActionType } from '$lib/types/agent';
 	import type { NavigationItem } from '$lib/types/navigation';
 
@@ -15,21 +18,34 @@
 
 	let expandedId: string | null = null;
 	let sidebarOpen = false;
-	let chatModeActive = false;
 	let lastAction: { message: string; timestamp: string } | null = null;
+	let activeNavId = 'agents';
+	let chatContactId: string | null = null;
+	let chatModeActive = false;
+	let currentTheme: 'light' | 'dark' = 'light';
+
+	const docLink = '/docs/llms.txt';
 
 	const navItems: NavigationItem[] = [
-		{ label: 'Overview', description: 'Mission-wide telemetry' },
-		{ label: 'Agents', description: 'Live agent feed' },
-		{ label: 'Chat mode', description: 'WhatsApp-style panel' },
-		{ label: 'Settings', description: 'Policy and billing' }
+		{ id: 'overview', label: 'Overview', description: 'Mission-wide telemetry' },
+		{ id: 'agents', label: 'Agents', description: 'Live agent feed' },
+		{ id: 'chat', label: 'Chat mode', description: 'WhatsApp-style panel' },
+		{ id: 'settings', label: 'Settings', description: 'Policy and billing' }
 	];
+	const navLinkItems = navItems.filter((item) => item.id !== 'chat');
+	const headerNavItems = navLinkItems;
+
+	const unsubscribeTheme = theme.subscribe((value) => {
+		currentTheme = value;
+	});
+
+	onDestroy(() => {
+		unsubscribeTheme();
+	});
 
 	const toggleCard = (id: string) => {
 		expandedId = expandedId === id ? null : id;
 	};
-
-	const docLink = '/docs/llms.txt';
 
 	const handleRefresh = async () => {
 		await refresh();
@@ -50,12 +66,52 @@
 		}
 	};
 
-	const toggleChatMode = () => {
-		chatModeActive = !chatModeActive;
+	const activateNavItem = (item: NavigationItem) => {
+		activeNavId = item.id;
+		const isChatMode = item.id === 'chat';
+		chatModeActive = isChatMode;
+		if (!isChatMode) {
+			chatContactId = null;
+			expandedId = null;
+		}
+		closeSidebar();
 	};
 
-	const handleNavSelect = (event: CustomEvent<NavigationItem>) => {
-		closeSidebar();
+	const handleNavSelection = (event: CustomEvent<NavigationItem>) => {
+		activateNavItem(event.detail);
+	};
+
+	const switchToAgentMode = () => {
+		const agentItem = navItems.find((entry) => entry.id === 'agents');
+		if (agentItem) {
+			activateNavItem(agentItem);
+		}
+	};
+
+	const switchToChatMode = () => {
+		const chatItem = navItems.find((entry) => entry.id === 'chat');
+		if (chatItem) {
+			activateNavItem(chatItem);
+		}
+	};
+
+	const closeChatPanel = () => {
+		chatModeActive = false;
+		chatContactId = null;
+		expandedId = null;
+		activeNavId = 'agents';
+	};
+
+	const selectChatContact = (agentId: string) => {
+		chatModeActive = true;
+		activeNavId = 'chat';
+		chatContactId = agentId;
+		expandedId = agentId;
+	};
+
+	const closeChatDetail = () => {
+		chatContactId = null;
+		expandedId = null;
 	};
 
 	const actionLabels: Record<AgentActionType, string> = {
@@ -77,15 +133,21 @@
 		};
 	};
 
+	$: isChatMode = activeNavId === 'chat';
+	$: isAgentMode = !isChatMode;
+
 	$: parsedValue = Date.parse(lastUpdated);
 	$: formattedUpdated = !Number.isNaN(parsedValue)
 		? new Date(parsedValue).toLocaleString('en-GB', {
-			hour: '2-digit',
-			minute: '2-digit',
-			second: '2-digit'
-		})
+				hour: '2-digit',
+				minute: '2-digit',
+				second: '2-digit'
+			})
 		: 'Unknown';
+
+	$: activeNavItem = navItems.find((item) => item.id === activeNavId) ?? navItems[1];
 </script>
+
 
 <section class="dashboard">
 	<div
@@ -98,12 +160,55 @@
 	></div>
 
 	<aside class={`sidebar ${sidebarOpen ? 'open' : ''}`}>
-		<NavigationPanel items={navItems} on:select={handleNavSelect} />
+		<NavigationPanel items={navLinkItems} activeId={activeNavId} on:select={handleNavSelection}>
+			<div slot="header-actions" class="sidebar__header-actions">
+				<button
+					type="button"
+					class="sidebar__theme-mini"
+					on:click={toggleTheme}
+					aria-label="Toggle light and dark theme"
+				>
+					{currentTheme === 'dark' ? '☀️' : '🌙'}
+				</button>
+				<button
+					type="button"
+					class="sidebar__close-mini"
+					on:click={closeSidebar}
+					aria-label="Close navigation"
+				>
+					<span aria-hidden="true">×</span>
+				</button>
+			</div>
+		</NavigationPanel>
+		<div class="sidebar__modes" role="group" aria-label="View modes">
+			<p class="sidebar__modes-label">View modes</p>
+			<div class="sidebar__modes-actions">
+				<button
+					type="button"
+					class="sidebar__mode-button"
+					class:active={isAgentMode}
+					aria-pressed={isAgentMode}
+					on:click={switchToAgentMode}
+				>
+					Agent mode (default)
+				</button>
+				<button
+					type="button"
+					class="sidebar__mode-button"
+					class:active={isChatMode}
+					aria-pressed={isChatMode}
+					on:click={switchToChatMode}
+				>
+					Chat mode
+				</button>
+			</div>
+		</div>
 		<p class="sidebar__note">Tap outside or the close icon to hide the sidebar.</p>
 	</aside>
 
+
 	<div class="dashboard__box">
-		<header class="dashboard__header">
+		<header class="dashboard__header console-card">
 			<div class="dashboard__header-left">
 				<button
 					type="button"
@@ -116,63 +221,82 @@
 					<span></span>
 					<span></span>
 				</button>
-				<div>
+				<div class="dashboard__branding">
 					<p class="eyebrow">Agent console</p>
 					<h1>Agents</h1>
 				</div>
+				<div class="dashboard__mode-indicator">
+					<strong>Active mode</strong>
+					<span>{activeNavItem.label}</span>
+				</div>
 			</div>
-			<div class="dashboard__header-actions">
-				<button type="button" class={`chat-toggle ${chatModeActive ? 'active' : ''}`} aria-pressed={chatModeActive} on:click={toggleChatMode}>
-					<span aria-hidden="true">💬</span>
-					<span>{chatModeActive ? 'Chat mode active' : 'Enter chat mode'}</span>
-				</button>
-
-				<button
-					type="button"
-					class="refresh"
-					aria-live="polite"
-					aria-busy={isRefreshing}
-					disabled={isRefreshing}
-					on:click={handleRefresh}
-				>
-					{#if isRefreshing}
-						Refreshing…
-					{:else}
-						Refresh data
-					{/if}
-				</button>
+			<div class="dashboard__header-right">
+				<TopNavbar items={headerNavItems} activeId={activeNavId} disabled={isChatMode} on:select={handleNavSelection} />
+				<div class="dashboard__header-controls">
+					
+					<button type="button" class="theme-pill" on:click={toggleTheme}>
+						{currentTheme === 'dark' ? '☀️ Light' : '🌙 Dark'}
+					</button>
+				</div>
 			</div>
 		</header>
 
-		<p class="last-updated">Last updated {formattedUpdated}</p>
+		<main class="dashboard__content">
+			<div class="dashboard__status-row">
+				<p>Last updated {formattedUpdated}</p>
+				<span class="status-chip">Mode: {activeNavItem.label}</span>
+			</div>
 
-		{#if errorMessage}
-			<ErrorBanner message={errorMessage} on:retry={handleRefresh} />
-		{/if}
+			{#if errorMessage}
+				<ErrorBanner message={errorMessage} on:retry={handleRefresh} />
+			{/if}
 
-		<AgentList
-			agents={agents}
-			expandedId={expandedId}
-			onToggle={toggleCard}
-			onAction={handleCardAction}
-			loading={loading || isRefreshing}
-		/>
-
-		<div class="llm-guidance">
-			<p>
-				LLM usage notes live in <a href={docLink} target="_blank" rel="noreferrer">{docLink}</a>.
-				Keep prompts scoped, recycle trusted system instructions, and monitor monthly usage so you can act before limits are hit.
-			</p>
-			<p class="guidance__meta">Key reminders: short prompts, 80% usage alerts, clear system instructions.</p>
-		</div>
+			{#if activeNavId === 'overview'}
+				<section class="overview-panel">
+					<h2>Snapshot</h2>
+					<p>Overview stats, usage, and mission notes live here. Keep an eye on monthly spend and prompt hygiene.</p>
+					<div class="overview-panel__cards">
+						<div>
+							<p>Monthly spend</p>
+							<strong>82%</strong>
+						</div>
+						<div>
+							<p>Live agents</p>
+							<strong>{agents.length}</strong>
+						</div>
+					</div>
+					<div class="llm-guidance">
+						<p>
+							LLM usage notes live in <a href={docLink} target="_blank" rel="noreferrer">{docLink}</a>.
+							Keep prompts scoped, recycle trusted system instructions, and monitor monthly usage so you can act before limits are hit.
+						</p>
+						<p class="guidance__meta">Key reminders: short prompts, 80% usage alerts, clear system instructions.</p>
+					</div>
+				</section>
+			{:else if activeNavId === 'settings'}
+				<section class="overview-panel">
+					<h2>Settings & policies</h2>
+					<p>Placeholder for governance, billing, and plan controls. You can place toggles here later.</p>
+				</section>
+			{:else}
+				<AgentList
+					agents={agents}
+					expandedId={expandedId}
+					onToggle={toggleCard}
+					onAction={handleCardAction}
+					loading={loading || isRefreshing}
+				/>
+			{/if}
+		</main>
 	</div>
-
-	<ChatModePanel
+	<ChatSheet
 		agents={agents}
 		open={chatModeActive}
-		activeAgentId={expandedId}
+		expandedAgentId={chatContactId}
 		lastAction={lastAction}
-		onClose={() => (chatModeActive = false)}
+		onEntrySelect={selectChatContact}
+		onDetailClose={closeChatDetail}
+		onClose={closeChatPanel}
 	/>
 </section>
 
@@ -188,7 +312,7 @@
 	}
 
 	.dashboard__box {
-		width: min(640px, 100%);
+		width: min(720px, 100%);
 		display: flex;
 		flex-direction: column;
 		gap: 1rem;
@@ -245,121 +369,179 @@
 		color: var(--muted-text);
 		line-height: 1.4;
 	}
+	.sidebar__modes {
+		display: flex;
+		flex-direction: column;
+		gap: 0.4rem;
+		padding: 0.5rem 0;
+		border-top: 1px solid var(--navigation-link-border);
+		border-bottom: 1px solid var(--navigation-link-border);
+	}
+	.sidebar__modes-label {
+		margin: 0;
+		font-size: 0.65rem;
+		text-transform: uppercase;
+		letter-spacing: 0.2em;
+		color: var(--muted-text);
+	}
+	.sidebar__modes-actions {
+		display: flex;
+		gap: 0.4rem;
+		flex-wrap: wrap;
+	}
+	.sidebar__mode-button {
+		border: 1px solid var(--navigation-link-border);
+		border-radius: 999px;
+		background: var(--navigation-link-bg);
+		color: var(--sidebar-text);
+		padding: 0.35rem 0.95rem;
+		font-size: 0.75rem;
+		font-weight: 600;
+		cursor: pointer;
+		transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+	}
+	.sidebar__mode-button:hover,
+	.sidebar__mode-button:focus-visible {
+		transform: translateY(-1px);
+		border-color: var(--primary);
+	}
+	.sidebar__mode-button.active {
+		background: var(--primary);
+		color: #fff;
+		border-color: transparent;
+	}
+
+
+	.sidebar__header-actions {
+		display: flex;
+		justify-content: flex-end;
+		gap: 0.35rem;
+	}
+
+	.sidebar__theme-mini,
+	.sidebar__close-mini {
+		border: 1px solid var(--navigation-link-border);
+		border-radius: 999px;
+		padding: 0.35rem 0.85rem;
+		font-size: 0.75rem;
+		background: var(--navigation-link-bg);
+		color: var(--sidebar-text);
+		cursor: pointer;
+		transition: background 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+	}
+
+	.sidebar__close-mini {
+		padding: 0.35rem 0.65rem;
+	}
 
 	.dashboard__header {
 		display: flex;
-		justify-content: space-between;
-		align-items: center;
+		flex-direction: column;
 		gap: 1rem;
 		padding: 1rem 1.25rem;
 		background: var(--surface-bg);
 		border-radius: 18px;
-		box-shadow: var(--surface-shadow);
 		border: 1px solid var(--surface-border);
+		box-shadow: var(--surface-shadow);
 	}
 
 	.dashboard__header-left {
 		display: flex;
 		align-items: center;
 		gap: 1rem;
-	}
-
-	.dashboard__header h1 {
-		margin: 0;
-		font-size: clamp(1.7rem, 4vw, 2.4rem);
-	}
-
-	.hamburger {
-		width: 48px;
-		height: 48px;
-		border-radius: 14px;
-		border: 1px solid var(--border-color);
-		background: var(--surface-bg);
-		display: flex;
-		flex-direction: column;
-		justify-content: center;
-		align-items: center;
-		gap: 6px;
-		padding: 0.4rem;
-		cursor: pointer;
-		box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
-	}
-
-	.hamburger span {
-		display: block;
-		width: 22px;
-		height: 2px;
-		border-radius: 999px;
-		background: var(--text-color);
-	}
-
-	.dashboard__header-actions {
-		display: flex;
-		align-items: center;
-		gap: 0.65rem;
 		flex-wrap: wrap;
 	}
 
-	.chat-toggle {
-		border: none;
-		border-radius: 999px;
-		padding: 0.55rem 1rem;
-		font-weight: 600;
-		background: rgba(37, 99, 235, 0.12);
-		color: var(--primary, #2563eb);
-		display: inline-flex;
-		align-items: center;
-		gap: 0.35rem;
-		cursor: pointer;
-		transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
-	}
-
-	.chat-toggle.active {
-		background: var(--primary, #2563eb);
-		color: #ffffff;
-		box-shadow: 0 10px 30px rgba(37, 99, 235, 0.25);
-	}
-
-	.chat-toggle:focus-visible,
-	.chat-toggle:hover {
-		transform: translateY(-1px);
-	}
-
-	.eyebrow {
+	.dashboard__branding h1 {
 		margin: 0;
-		text-transform: uppercase;
-		letter-spacing: 0.15em;
-		font-size: 0.7rem;
-		color: var(--muted-text, #8a95a1);
+		font-size: clamp(1.8rem, 3vw, 2.4rem);
 	}
 
-	.last-updated {
-		margin: 0 1rem;
-		font-size: 0.85rem;
-		color: var(--muted-text, #8a95a1);
+	.dashboard__mode-indicator {
+		display: flex;
+		flex-direction: column;
+		font-size: 0.75rem;
+		color: var(--muted-text);
 	}
 
-	.refresh {
-		border: none;
-		background: var(--card-background, #ffffff);
-		color: var(--primary, #2563eb);
-		padding: 0.65rem 1.2rem;
-		border-radius: 999px;
+	.dashboard__mode-indicator span {
 		font-weight: 600;
-		box-shadow: 0 4px 12px rgba(20, 23, 37, 0.12);
-		transition: transform 0.2s ease, background 0.2s ease;
+		color: var(--text-color);
 	}
 
-	.refresh:hover {
+	.dashboard__header-right {
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+	}
+
+	.dashboard__header-controls {
+		display: flex;
+		gap: 0.65rem;
+		flex-wrap: wrap;
+		align-items: center;
+	}
+
+	.theme-pill {
+		border: 1px solid var(--border-color);
+		background: var(--surface-bg);
+		color: var(--text-color);
+		border-radius: 999px;
+		padding: 0.35rem 0.9rem;
+		font-size: 0.75rem;
+		font-weight: 600;
+		cursor: pointer;
+		box-shadow: 0 6px 18px rgba(15, 23, 42, 0.12);
+		transition: transform 0.2s ease, border-color 0.2s ease;
+	}
+
+	.theme-pill:hover {
 		transform: translateY(-1px);
-		background: var(--primary-muted, #f0f5ff);
+		border-color: var(--primary);
 	}
 
-	.refresh:disabled {
-		opacity: 0.6;
-		cursor: not-allowed;
-		box-shadow: none;
-		transform: none;
+	.dashboard__content {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+	}
+
+	.dashboard__status-row {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		gap: 0.75rem;
+		font-size: 0.85rem;
+		color: var(--muted-text);
+	}
+
+	.status-chip {
+		padding: 0.35rem 0.9rem;
+		border-radius: 999px;
+		border: 1px solid var(--border-color);
+	}
+
+	.overview-panel {
+		padding: 1rem 1.2rem;
+		border-radius: 16px;
+		background: var(--surface-bg);
+		border: 1px solid var(--surface-border);
+		box-shadow: var(--surface-shadow);
+	}
+
+	.overview-panel__cards {
+		display: flex;
+		gap: 1rem;
+		margin-top: 0.75rem;
+	}
+
+	.overview-panel__cards > div {
+		flex: 1;
+		border-radius: 14px;
+		background: var(--card-background);
+		padding: 0.8rem 1rem;
+		border: 1px solid var(--border-color);
+		box-shadow: var(--card-shadow, 0 12px 30px rgba(15, 23, 42, 0.08));
 	}
 
 	.llm-guidance {
@@ -373,42 +555,36 @@
 	}
 
 	.llm-guidance a {
-		color: var(--primary, #2563eb);
+		color: var(--primary);
 		text-decoration: underline;
 	}
 
 	.guidance__meta {
 		margin-top: 0.5rem;
 		font-size: 0.8rem;
-		color: var(--muted-text, #6b7280);
+	}
+
+	@media (min-width: 900px) {
+		.dashboard__header {
+			flex-direction: row;
+			align-items: center;
+			justify-content: space-between;
+		}
+
+		.dashboard__header-right {
+			flex-direction: row;
+			align-items: center;
+			gap: 1rem;
+		}
+
+		.dashboard__header-controls {
+			margin-left: auto;
+		}
 	}
 
 	@media (max-width: 640px) {
-		.dashboard__header {
+		.overview-panel__cards {
 			flex-direction: column;
-			align-items: flex-start;
-		}
-
-		.dashboard__header-actions {
-			width: 100%;
-			justify-content: flex-start;
-		}
-
-		.chat-toggle,
-		.refresh {
-			flex: 1;
-			text-align: center;
-		}
-	}
-
-	@media (max-width: 480px) {
-		.dashboard__header {
-			padding: 0.8rem 1rem;
-		}
-
-		.hamburger {
-			width: 42px;
-			height: 42px;
 		}
 	}
 </style>

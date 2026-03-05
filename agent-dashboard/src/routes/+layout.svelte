@@ -1,32 +1,8 @@
 <script lang="ts">
-	import { browser } from '$app/environment';
 	import { onMount } from 'svelte';
+	import { initTheme } from '$lib/stores/theme';
 
-	const THEME_STORAGE_KEY = 'agent-dashboard-theme';
-
-	let theme: 'light' | 'dark' = 'light';
-
-	const applyTheme = (value: 'light' | 'dark') => {
-		if (!browser) return;
-		document.documentElement.dataset.theme = value;
-		localStorage.setItem(THEME_STORAGE_KEY, value);
-	};
-
-	const toggleTheme = () => {
-		theme = theme === 'light' ? 'dark' : 'light';
-		applyTheme(theme);
-	};
-
-	onMount(() => {
-		if (!browser) return;
-		const stored = localStorage.getItem(THEME_STORAGE_KEY);
-		if (stored === 'dark' || stored === 'light') {
-			theme = stored;
-		} else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-			theme = 'dark';
-		}
-		applyTheme(theme);
-	});
+	onMount(initTheme);
 </script>
 
 <svelte:head>
@@ -43,20 +19,6 @@
 			<p class="eyebrow">Agent dashboard</p>
 			<h1>Agent console</h1>
 		</div>
-		<button
-			type="button"
-			class="theme-toggle"
-			aria-pressed={theme === 'dark'}
-			on:click={toggleTheme}
-		>
-			{#if theme === 'light'}
-				<span aria-hidden="true">🌙</span>
-				<span>Enable dark mode</span>
-			{:else}
-				<span aria-hidden="true">☀️</span>
-				<span>Enable light mode</span>
-			{/if}
-		</button>
 	</header>
 
 	<main>
@@ -72,6 +34,7 @@
 		--text-color: #0f172a;
 		--muted-text: #6b7280;
 		--card-background: #ffffff;
+		--card-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
 		--primary: #2563eb;
 		--primary-muted: #f0f5ff;
 		--guide-bg: #11182714;
@@ -104,6 +67,7 @@
 		--text-color: #e2e8f0;
 		--muted-text: #cbd5f5;
 		--card-background: rgba(15, 23, 42, 0.85);
+		--card-shadow: 0 8px 20px rgba(0, 0, 0, 0.65);
 		--primary: #60a5fa;
 		--primary-muted: rgba(59, 130, 246, 0.15);
 		--guide-bg: rgba(148, 163, 184, 0.2);
@@ -174,27 +138,6 @@
 		padding: 0;
 	}
 
-	.theme-toggle {
-		border: 1px solid var(--border-color);
-		background: var(--card-background);
-		color: var(--text-color);
-		border-radius: 999px;
-		padding: 0.55rem 1.2rem;
-		font-weight: 600;
-		font-size: 0.95rem;
-		display: inline-flex;
-		align-items: center;
-		gap: 0.45rem;
-		cursor: pointer;
-		box-shadow: 0 8px 20px rgba(15, 23, 42, 0.12);
-		transition: transform 0.2s ease, box-shadow 0.2s ease;
-	}
-
-	.theme-toggle:hover {
-		transform: translateY(-1px);
-		box-shadow: 0 12px 25px rgba(15, 23, 42, 0.18);
-	}
-
 	@media (max-width: 768px) {
 		.page-shell {
 			padding: 0 1rem 2rem;
@@ -205,9 +148,5 @@
 			align-items: flex-start;
 		}
 
-		.theme-toggle {
-			width: 100%;
-			justify-content: center;
-		}
 	}
 </style>

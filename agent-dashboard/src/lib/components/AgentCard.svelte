@@ -75,7 +75,7 @@
 		border-radius: 1rem;
 		border: 1px solid rgba(15, 23, 42, 0.08);
 		background: var(--card-background, #ffffff);
-		box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+		box-shadow: var(--card-shadow, 0 10px 25px rgba(15, 23, 42, 0.08));
 		padding: 0;
 		transition: transform 0.2s ease, box-shadow 0.2s ease;
 		overflow: hidden;

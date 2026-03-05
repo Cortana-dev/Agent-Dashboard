@@ -13,7 +13,7 @@
 		border-radius: 1rem;
 		background: rgba(15, 23, 42, 0.03);
 		padding: 1.25rem;
-		box-shadow: 0 6px 15px rgba(15, 23, 42, 0.04);
+		box-shadow: var(--card-shadow, 0 6px 15px rgba(15, 23, 42, 0.04));
 		display: flex;
 		flex-direction: column;
 		gap: 0.9rem;
