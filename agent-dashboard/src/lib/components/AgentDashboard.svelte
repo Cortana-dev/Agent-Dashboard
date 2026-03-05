@@ -2,7 +2,9 @@
 	import AgentList from '$lib/components/AgentList.svelte';
 	import ChatModePanel from '$lib/components/ChatModePanel.svelte';
 	import ErrorBanner from '$lib/components/ErrorBanner.svelte';
+	import NavigationPanel from '$lib/components/NavigationPanel.svelte';
 	import type { AgentSummary, AgentActionEventDetail, AgentActionType } from '$lib/types/agent';
+	import type { NavigationItem } from '$lib/types/navigation';
 
 	export let agents: AgentSummary[] = [];
 	export let lastUpdated: string = new Date().toISOString();
@@ -16,7 +18,7 @@
 	let chatModeActive = false;
 	let lastAction: { message: string; timestamp: string } | null = null;
 
-	const navItems = [
+	const navItems: NavigationItem[] = [
 		{ label: 'Overview', description: 'Mission-wide telemetry' },
 		{ label: 'Agents', description: 'Live agent feed' },
 		{ label: 'Chat mode', description: 'WhatsApp-style panel' },
@@ -50,6 +52,10 @@
 
 	const toggleChatMode = () => {
 		chatModeActive = !chatModeActive;
+	};
+
+	const handleNavSelect = (event: CustomEvent<NavigationItem>) => {
+		closeSidebar();
 	};
 
 	const actionLabels: Record<AgentActionType, string> = {
@@ -92,23 +98,7 @@
 	></div>
 
 	<aside class={`sidebar ${sidebarOpen ? 'open' : ''}`}>
-		<div class="sidebar__header">
-			<div>
-				<p class="sidebar__eyebrow">Navigation</p>
-				<h2>Control center</h2>
-			</div>
-			<button type="button" class="sidebar__close" aria-label="Close navigation" on:click={closeSidebar}>×</button>
-		</div>
-
-		<nav class="sidebar__nav" aria-label="Primary navigation">
-			{#each navItems as item}
-				<button type="button" class="sidebar__link" on:click={closeSidebar}>
-					<span class="sidebar__link-label">{item.label}</span>
-					<small>{item.description}</small>
-				</button>
-			{/each}
-		</nav>
-
+		<NavigationPanel items={navItems} on:select={handleNavSelect} />
 		<p class="sidebar__note">Tap outside or the close icon to hide the sidebar.</p>
 	</aside>
 
@@ -246,62 +236,6 @@
 
 	.sidebar.open {
 		transform: translateX(0);
-	}
-
-	.sidebar__header {
-		display: flex;
-		justify-content: space-between;
-		align-items: flex-start;
-		gap: 0.5rem;
-	}
-
-	.sidebar__eyebrow {
-		margin: 0;
-		text-transform: uppercase;
-		font-size: 0.65rem;
-		letter-spacing: 0.2em;
-		color: rgba(226, 232, 240, 0.7);
-	}
-
-	.sidebar__close {
-		border: none;
-		background: rgba(148, 163, 184, 0.2);
-		color: #f8fafc;
-		width: 32px;
-		height: 32px;
-		border-radius: 12px;
-		font-size: 1.2rem;
-		cursor: pointer;
-	}
-
-	.sidebar__nav {
-		display: flex;
-		flex-direction: column;
-		gap: 0.75rem;
-	}
-
-	.sidebar__link {
-		border: none;
-		background: rgba(148, 163, 184, 0.08);
-		color: inherit;
-		border-radius: 14px;
-		padding: 0.75rem 1rem;
-		text-align: left;
-		display: flex;
-		flex-direction: column;
-		gap: 0.2rem;
-		cursor: pointer;
-		transition: background 0.2s ease, transform 0.2s ease;
-	}
-
-	.sidebar__link:hover {
-		background: rgba(148, 163, 184, 0.2);
-		transform: translateX(2px);
-	}
-
-	.sidebar__link-label {
-		font-weight: 600;
-		letter-spacing: 0.04em;
 	}
 
 	.sidebar__note {
